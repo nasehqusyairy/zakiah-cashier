@@ -3,9 +3,11 @@ import React, { useState, useMemo } from 'react';
 import { products } from "@/dummies/product"; 
 import type { TProduct } from "@/lib/model";
 import { Card } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, Package } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { Search, ShoppingCart, Plus, Minus, Trash2, Package } from "lucide-react";
 
 // Tipe lokal untuk Cart yang menggabungkan TProduct + quantity
 type TCartItem = TProduct & { quantity: number };
@@ -25,7 +27,7 @@ const POSPage: React.FC = () => {
 
   return (
     <div className="flex gap-6 h-[calc(100vh-140px)] p-2">
-      {/*========= AREA PRODUK =========*/}
+      {/*======== AREA PRODUK =========*/}
       <div className="flex-[2.5] flex flex-col gap-4">
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
@@ -71,6 +73,65 @@ const POSPage: React.FC = () => {
         </ScrollArea>
       </div>
 
+      {/* AREA KERANJANG */}
+      <aside className="flex-1 bg-white border rounded-2xl shadow-xl flex flex-col min-w-[360px] overflow-hidden">
+        <div className="p-5 border-b bg-slate-50 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <ShoppingCart className="h-5 w-5 text-primary" />
+            <h3 className="font-bold text-slate-700">Billing Details</h3>
+          </div>
+          <Button variant="ghost" size="sm" onClick={() => setCart([])} className="text-red-500 text-xs">
+            Clear All
+          </Button>
+        </div>
+
+        <ScrollArea className="flex-1 px-5">
+          {cart.length === 0 ? (
+            <div className="h-64 flex flex-col items-center justify-center text-slate-300">
+              <ShoppingCart className="h-12 w-12 mb-2 opacity-20" />
+              <p className="text-sm">No items in cart</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-slate-100">
+              {cart.map((item) => (
+                <div key={item.id} className="py-4 space-y-3">
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="flex-1">
+                      <h5 className="font-bold text-sm text-slate-800 leading-tight">{item.name}</h5>
+                      <p className="text-xs text-slate-400 mt-1 italic">{formatIDR(item.sell_price)} / {item.product_unit.name}</p>
+                    </div>
+                    <p className="font-black text-sm text-slate-700">{formatIDR(item.sell_price * item.quantity)}</p>
+                  </div>
+                  
+                  <div className="flex items-center justify-start gap-2">
+                    <div className="flex items-center border rounded-lg bg-white shadow-sm overflow-hidden">
+                      <span className="px-3 text-sm font-bold text-slate-700">{item.quantity}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </ScrollArea>
+
+        <div className="p-6 bg-slate-900 text-white rounded-t-3xl">
+          <div className="space-y-3 mb-6">
+            <div className="flex justify-between text-slate-400 text-sm">
+              <span>Subtotal</span>
+            </div>
+            <Separator className="bg-slate-700" />
+            <div className="flex justify-between items-center">
+              <span className="font-medium">Total Amount</span>
+            </div>
+          </div>
+          <Button 
+            className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl" 
+            disabled={cart.length === 0}
+          >
+            CHECKOUT NOW
+          </Button>
+        </div>
+      </aside>
     </div>
   );
 };
