@@ -16,4 +16,9 @@ export default defineConfig({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  server: {
+    watch: {
+      usePolling: true, // Tambahkan ini jika kamu merasa update sangat lambat atau macet
+    },
+  },
 })

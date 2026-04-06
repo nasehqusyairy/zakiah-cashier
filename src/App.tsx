@@ -1,9 +1,10 @@
-import { Button } from "./components/ui/button"
+import { Button } from "@/components/ui/button"
+import POSPage from "./pages/POS"
 
 export default () => {
   return (
     <>
-      <Button>Button</Button>
+      <POSPage />
     </>
   )
 }

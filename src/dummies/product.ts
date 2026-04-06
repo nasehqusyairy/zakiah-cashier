@@ -1,6 +1,6 @@
 import type { TProduct } from "../lib/model"
 
-const products: TProduct[] = [
+export const products: TProduct[] = [
     {
         "id": 2944,
         "name": "Pita Serut Kecil",
