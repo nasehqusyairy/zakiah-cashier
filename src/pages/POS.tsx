@@ -9,25 +9,54 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Search, ShoppingCart, Plus, Minus, Trash2, Package } from "lucide-react";
 
-// Tipe lokal untuk Cart yang menggabungkan TProduct + quantity
 type TCartItem = TProduct & { quantity: number };
 
 const POSPage: React.FC = () => {
   const [cart, setCart] = useState<TCartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Filter Produk
+  // Logic: Add to cart
+  const addToCart = (product: TProduct) => {
+    setCart((current) => {
+      const existing = current.find((item) => item.id === product.id);
+      if (existing) {
+        return current.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...current, { ...product, quantity: 1 }];
+    });
+  };
+
+  // Logic: Reducing quantity
+  const removeFromCart = (id: number) => {
+    setCart((current) => {
+      const item = current.find((i) => i.id === id);
+      if (item?.quantity === 1) {
+        return current.filter((i) => i.id !== id);
+      }
+      return current.map((i) =>
+        i.id === id ? { ...i, quantity: i.quantity - 1 } : i
+      );
+    });
+  };
+
+  // Product filter
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     p.sku.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const totalPrice = useMemo(() => {
+    return cart.reduce((acc, item) => acc + item.sell_price * item.quantity, 0);
+  }, [cart]);
 
   const formatIDR = (price: number) => 
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price);
 
   return (
     <div className="flex gap-6 h-[calc(100vh-140px)] p-2">
-      {/*======== AREA PRODUK =========*/}
+      {/*======== Products grid Area =========*/}
       <div className="flex-[2.5] flex flex-col gap-4">
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
@@ -35,6 +64,7 @@ const POSPage: React.FC = () => {
             placeholder="Cari produk atau scan barcode..." 
             className="pl-10 h-11"
             value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
 
@@ -43,6 +73,7 @@ const POSPage: React.FC = () => {
             {filteredProducts.map((product) => (
               <Card 
                 key={product.id}
+                onClick={() => addToCart(product)}
                 className="overflow-hidden cursor-pointer hover:border-primary transition-all flex flex-col group shadow-sm"
               >
                 <div className="aspect-square bg-slate-100 relative flex items-center justify-center border-b">
@@ -73,12 +104,12 @@ const POSPage: React.FC = () => {
         </ScrollArea>
       </div>
 
-      {/* AREA KERANJANG */}
+      {/* ========= Cart Area ========= */}
       <aside className="flex-1 bg-white border rounded-2xl shadow-xl flex flex-col min-w-[360px] overflow-hidden">
         <div className="p-5 border-b bg-slate-50 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5 text-primary" />
-            <h3 className="font-bold text-slate-700">Billing Details</h3>
+            <h3 className="font-bold text-slate-700">Daftar Pesanan</h3>
           </div>
           <Button variant="ghost" size="sm" onClick={() => setCart([])} className="text-red-500 text-xs">
             Clear All
@@ -89,7 +120,7 @@ const POSPage: React.FC = () => {
           {cart.length === 0 ? (
             <div className="h-64 flex flex-col items-center justify-center text-slate-300">
               <ShoppingCart className="h-12 w-12 mb-2 opacity-20" />
-              <p className="text-sm">No items in cart</p>
+              <p className="text-sm">Tidak ada item yang ditambahkan</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
@@ -105,7 +136,13 @@ const POSPage: React.FC = () => {
                   
                   <div className="flex items-center justify-start gap-2">
                     <div className="flex items-center border rounded-lg bg-white shadow-sm overflow-hidden">
+                      <button onClick={() => removeFromCart(item.id)} className="p-1.5 hover:bg-slate-50">
+                        {item.quantity === 1 ? <Trash2 className="h-3.5 w-3.5 text-red-500" /> : <Minus className="h-3.5 w-3.5" />}
+                      </button>
                       <span className="px-3 text-sm font-bold text-slate-700">{item.quantity}</span>
+                      <button onClick={() => addToCart(item)} className="p-1.5 hover:bg-slate-50 border-l">
+                        <Plus className="h-3.5 w-3.5 text-primary" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -118,17 +155,19 @@ const POSPage: React.FC = () => {
           <div className="space-y-3 mb-6">
             <div className="flex justify-between text-slate-400 text-sm">
               <span>Subtotal</span>
+              <span>{formatIDR(totalPrice)}</span>
             </div>
             <Separator className="bg-slate-700" />
             <div className="flex justify-between items-center">
-              <span className="font-medium">Total Amount</span>
+              <span className="font-medium">Jumlah Total</span>
+              <span className="text-3xl font-black text-primary">{formatIDR(totalPrice)}</span>
             </div>
           </div>
           <Button 
             className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl" 
             disabled={cart.length === 0}
           >
-            CHECKOUT NOW
+            CHECKOUT 
           </Button>
         </div>
       </aside>
