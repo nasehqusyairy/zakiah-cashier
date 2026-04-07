@@ -22,3 +22,19 @@ export type TProduct = {
         average_buy_price: number
     }
 }
+
+export type TInvoice = {
+  id: string;
+  invoice_number: string;
+  cashier_name: string;
+  total_items: number;
+  total_price: number;
+  total_paid: number;
+  total_return: number;
+  created_at: string;
+  items: {
+    product: TProduct;
+    quantity: number;
+    subtotal: number;
+  }[];
+};
