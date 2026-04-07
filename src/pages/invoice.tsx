@@ -58,8 +58,67 @@ const InvoicePage = () => {
         </div>
       </div>
 
-      {/* KANAN: Detail Struk */}
-      <aside className="flex-1">Area Detail Struk...</aside>
+      {/* ========= Invoice Details ========= */}
+      <aside className="flex-1">
+<aside className="bg-white border rounded-2xl shadow-sm flex flex-col overflow-hidden">
+  {!selectedInvoice ? (
+    <div className="flex-1 flex flex-col items-center justify-center text-slate-300 gap-2">
+      <Receipt size={48} className="opacity-20" />
+      <p className="text-sm">Pilih invoice untuk melihat detail</p>
+    </div>
+  ) : (
+    <>
+      <div className="p-6 border-b bg-slate-50/50 text-center">
+        <h3 className="font-black text-xl tracking-tighter">STRUK PEMBAYARAN</h3>
+        <p className="text-xs text-slate-400 font-mono mt-1">#INV-2024001</p>
+      </div>
+
+      <ScrollArea className="flex-1 p-6">
+        <div className="space-y-4">
+          <div className="flex justify-between text-xs text-slate-500 uppercase font-bold tracking-wider">
+            <span>Item</span>
+            <span>Total</span>
+          </div>
+          <div className="space-y-3">
+             {/* Map item struk di sini */}
+             <div className="flex justify-between items-start">
+                <div className="text-sm">
+                   <p className="font-medium">Pita Serut Kecil</p>
+                   <p className="text-xs text-slate-400">2 x Rp 1.000</p>
+                </div>
+                <p className="text-sm font-bold">Rp 2.000</p>
+             </div>
+          </div>
+          
+          <div className="border-t border-dashed pt-4 space-y-2">
+            <div className="flex justify-between text-sm">
+              <span>Total Harga</span>
+              <span className="font-bold">Rp 2.000</span>
+            </div>
+            <div className="flex justify-between text-sm">
+              <span>Bayar (Cash)</span>
+              <span>Rp 5.000</span>
+            </div>
+            <div className="flex justify-between text-sm font-black text-primary border-t pt-2">
+              <span>Kembalian</span>
+              <span>Rp 3.000</span>
+            </div>
+          </div>
+        </div>
+      </ScrollArea>
+
+      <div className="p-4 border-t flex gap-2 bg-slate-50">
+        <Button variant="outline" className="flex-1 gap-2 text-xs">
+          <FileText size={14} /> Cetak Struk
+        </Button>
+        <Button variant="outline" className="flex-1 gap-2 text-xs">
+           Kirim WhatsApp
+        </Button>
+      </div>
+    </>
+  )}
+</aside>
+      </aside>
     </div>
   );
 };
