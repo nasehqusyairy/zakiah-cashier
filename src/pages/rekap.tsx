@@ -21,7 +21,7 @@ const RekapPage = () => {
 
     return (
         <div className="flex gap-6 h-[calc(100vh-140px)]">
-            {/* Kolom Kiri & Kanan akan diisi di segmen berikutnya */}
+            
         </div>
     );
 };

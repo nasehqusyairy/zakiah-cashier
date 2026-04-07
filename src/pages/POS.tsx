@@ -55,10 +55,10 @@ const POSPage: React.FC = () => {
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price);
 
   return (
-    <div className="flex gap-6 h-[calc(100vh-140px)] p-2">
+    <div className="flex gap-6 h-[calc(100vh-140px)] overflow-hidden">  
       {/*======== Products grid Area =========*/}
-      <div className="flex-[2.5] flex flex-col gap-4">
-        <div className="relative">
+      <div className="flex-[2.5] flex flex-col min-h-0 gap-4">
+        <div className="relative shrink-0">
           <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
           <Input 
             placeholder="Cari produk atau scan barcode..." 
@@ -67,8 +67,8 @@ const POSPage: React.FC = () => {
             onChange={(e) => setSearchQuery(e.target.value)}
           />
         </div>
-
-        <ScrollArea className="flex-1 pr-4">
+        <div className="flex-1 min-h-0">
+        <ScrollArea className="h-full pr-4">
           <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 pb-10">
             {filteredProducts.map((product) => (
               <Card 
@@ -103,10 +103,10 @@ const POSPage: React.FC = () => {
           </div>
         </ScrollArea>
       </div>
-
+      </div>
       {/* ========= Cart Area ========= */}
       <aside className="flex-1 bg-white border rounded-2xl shadow-xl flex flex-col min-w-[360px] overflow-hidden">
-        <div className="p-5 border-b bg-slate-50 flex justify-between items-center">
+        <div className="p-5 border-b bg-slate-50 flex justify-between items-center shrink-0">
           <div className="flex items-center gap-2">
             <ShoppingCart className="h-5 w-5 text-primary" />
             <h3 className="font-bold text-slate-700">Daftar Pesanan</h3>
@@ -116,7 +116,8 @@ const POSPage: React.FC = () => {
           </Button>
         </div>
 
-        <ScrollArea className="flex-1 px-5">
+        <div className="flex-1 min-h-0">
+        <ScrollArea className="h-full px-5">
           {cart.length === 0 ? (
             <div className="h-64 flex flex-col items-center justify-center text-slate-300">
               <ShoppingCart className="h-12 w-12 mb-2 opacity-20" />
@@ -150,8 +151,9 @@ const POSPage: React.FC = () => {
             </div>
           )}
         </ScrollArea>
-
-        <div className="p-6 bg-slate-900 text-white rounded-t-3xl">
+        </div>
+        
+        <div className="p-6 bg-slate-900 text-white rounded-t-3xl shrink-0">
           <div className="space-y-3 mb-6">
             <div className="flex justify-between text-slate-400 text-sm">
               <span>Subtotal</span>
