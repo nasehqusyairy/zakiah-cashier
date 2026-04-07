@@ -120,11 +120,11 @@ const POSPage: React.FC = () => {
           {cart.length === 0 ? (
             <div className="h-64 flex flex-col items-center justify-center text-slate-300">
               <ShoppingCart className="h-12 w-12 mb-2 opacity-20" />
-              <p className="text-sm">Tidak ada item yang ditambahkan</p>
+              <p className="text-sm bold">Tidak ada item yang ditambahkan</p>
             </div>
           ) : (
             <div className="divide-y divide-slate-100">
-              {cart.map((item) => (
+              {cart.map((item) => ( 
                 <div key={item.id} className="py-4 space-y-3">
                   <div className="flex justify-between items-start gap-2">
                     <div className="flex-1">
