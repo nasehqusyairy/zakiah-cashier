@@ -9,9 +9,13 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { Search, ShoppingCart, Plus, Minus, Trash2, Package } from "lucide-react";
 
-type TCartItem = TProduct & { quantity: number };
+export type TCartItem = TProduct & { quantity: number };
 
-const POSPage: React.FC = () => {
+interface POSProps {
+  onCheckout: (cart: TCartItem[]) => void;
+}
+
+const POSPage: React.FC<POSProps> = ({ onCheckout }) => {
   const [cart, setCart] = useState<TCartItem[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -167,10 +171,7 @@ const POSPage: React.FC = () => {
           </div>
           <Button 
             className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl" 
-            disabled={cart.length === 0}
-          >
-            CHECKOUT 
-          </Button>
+            disabled={cart.length === 0} onClick={() => onCheckout(cart)}>CHECKOUT</Button>
         </div>
       </aside>
     </div>
