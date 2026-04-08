@@ -4,6 +4,7 @@ import InvoicePage from "./pages/invoice"
 import Sidebar from "./components/ui/sidebar"
 import { useState } from "react"
 import RekapPage from "./pages/rekap"
+import StokPage from "./pages/product-stock"
 
 function App() {
   const [currentPage, setCurrentPage] = useState('pos');
@@ -19,7 +20,7 @@ function App() {
         {currentPage === 'pos' && <POSPage />}
         {currentPage === 'invoice' && <InvoicePage />}
         {currentPage === 'rekap' && <RekapPage />}
-        {currentPage === 'stok' && <div className="p-20 text-center text-slate-400">Halaman Stok </div>}
+        {currentPage === 'stok' && <StokPage />}
       </main>
     </div>
   )
