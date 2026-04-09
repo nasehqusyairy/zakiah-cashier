@@ -61,53 +61,56 @@ const POSPage: React.FC<POSProps> = ({ onCheckout }) => {
   return (
     <div className="flex gap-6 h-[calc(100vh-140px)] overflow-hidden">  
       {/*======== Products grid Area =========*/}
-      <div className="flex-[2.5] flex flex-col min-h-0 gap-4">
-        <div className="relative shrink-0">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-          <Input 
-            placeholder="Cari produk atau scan barcode..." 
-            className="pl-10 h-11"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="flex-1 min-h-0">
-        <ScrollArea className="h-full pr-4">
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4 pb-10">
-            {filteredProducts.map((product) => (
-              <Card 
-                key={product.id}
-                onClick={() => addToCart(product)}
-                className="overflow-hidden cursor-pointer hover:border-primary transition-all flex flex-col group shadow-sm"
-              >
-                <div className="aspect-square bg-slate-100 relative flex items-center justify-center border-b">
-                  {product.image_url ? (
-                    <img src={product.image_url} alt={product.name} className="w-full h-full object-cover" />
-                  ) : (
-                    <div className="flex flex-col items-center text-slate-300">
-                      <Package className="h-10 w-10" />
-                      <span className="text-[10px] mt-1 uppercase">No Image</span>
-                    </div>
-                  )}
-                  <div className="absolute top-2 right-2 bg-white/90 px-2 py-0.5 rounded text-[10px] font-bold border shadow-sm">
-                    Stock: {product.product_location_stock.stock}
-                  </div>
-                </div>
-                <div className="p-3 flex flex-col flex-1 bg-white">
-                  <span className="text-[9px] font-mono text-slate-400 uppercase tracking-tighter">{product.sku}</span>
-                  <h4 className="font-semibold text-sm line-clamp-2 min-h-[40px] mt-1 text-slate-800 italic">
-                    {product.name}
-                  </h4>
-                  <p className="text-primary font-black text-lg mt-2">
-                    {formatIDR(product.sell_price)}
-                  </p>
-                </div>
-              </Card>
-            ))}
-          </div>
-        </ScrollArea>
+      {/*======== Products grid Area =========*/}
+<div className="flex-[2.5] flex flex-col min-h-0 gap-4">
+  <div className="relative shrink-0">
+    <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+    <Input 
+      placeholder="Cari produk atau scan barcode..." 
+      className="pl-10 h-11"
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+    />
+  </div>
+
+  <div className="flex-1 min-h-0">
+    <ScrollArea className="h-full pr-4">
+      {/* Grid disesuaikan agar item tidak terlalu tinggi karena tanpa gambar */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 pb-10">
+        {filteredProducts.map((product) => (
+          <Card 
+            key={product.id}
+            onClick={() => addToCart(product)}
+            className="cursor-pointer hover:border-primary transition-all flex flex-col group shadow-sm overflow-hidden border-slate-200"
+          >
+            {/* Bagian Atas: SKU & Stok (Menggantikan Area Gambar) */}
+            <div className="p-3 border-b bg-slate-50/50 flex justify-between items-start gap-2">
+              <span className="text-[10px] font-mono text-slate-400 uppercase tracking-tighter truncate">
+                {product.sku}
+              </span>
+              <div className="bg-white px-2 py-0.5 rounded text-[10px] font-bold border shadow-sm shrink-0">
+                STOK: {product.product_location_stock.stock}
+              </div>
+            </div>
+
+            {/* Bagian Bawah: Nama & Harga */}
+            <div className="p-3 flex flex-col justify-between flex-1 bg-white group-hover:bg-slate-50/30 transition-colors">
+              <h4 className="font-bold text-sm line-clamp-2 min-h-[40px] text-slate-700 leading-snug">
+                {product.name}
+              </h4>
+              <div className="mt-3 pt-2 border-t border-dashed border-slate-100 flex items-center justify-between">
+                <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Harga</span>
+                <p className="text-primary font-black text-base">
+                  {formatIDR(product.sell_price)}
+                </p>
+              </div>
+            </div>
+          </Card>
+        ))}
       </div>
-      </div>
+    </ScrollArea>
+  </div>
+</div>
       {/* ========= Cart Area ========= */}
       <aside className="flex-1 bg-white border rounded-2xl shadow-xl flex flex-col min-w-[360px] overflow-hidden">
         <div className="p-5 border-b bg-slate-50 flex justify-between items-center shrink-0">
