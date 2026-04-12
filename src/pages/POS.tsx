@@ -26,19 +26,53 @@ const salesData = [
 
 const POSPage: React.FC<POSProps> = ({ onCheckout }) => {
   // For Sales
-  const [selectedSales, setSelectedSales] = useState<string | null>(null);
-  const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const [selectedSales, setSelectedSales] = useState<string | null>(() => {
+    return localStorage.getItem("pos_selected_sales");
+  });
   const [isSalesModalOpen, setIsSalesModalOpen] = useState(false);
   const [salesSearch, setSalesSearch] = useState("");
   const filteredSales = salesData.filter(s => s.name.toLowerCase().includes(salesSearch.toLowerCase()));
+  useEffect(() => {
+    if (selectedSales) {
+      localStorage.setItem("pos_selected_sales", selectedSales);
+    } else {
+      localStorage.removeItem("pos_selected_sales");
+    }
+  }, [selectedSales]);
+
+  // For Member's
+  const [selectedMember, setSelectedMember] = useState<string | null>(() => {
+    return localStorage.getItem("pos_selected_member");
+  });
+  useEffect(() => {
+    if (selectedMember) {
+      localStorage.setItem("pos_selected_member", selectedMember);
+    } else {
+      localStorage.removeItem("pos_selected_member");
+    }
+  }, [selectedMember]);
 
   // For API's
   // const [products, setProducts] = useState<TProduct[]>([]);
   // const [loading, setLoading] = useState(false);
 
   // For Cart's
-  const [cart, setCart] = useState<TCartItem[]>([]);
+  const [cart, setCart] = useState<TCartItem[]>(() => 
+    { const savedCart = localStorage.getItem("pos_cart");
+      return savedCart ? JSON.parse(savedCart) : []; });
   const [searchQuery, setSearchQuery] = useState("");
+  useEffect(() => {
+    localStorage.setItem("pos_cart", JSON.stringify(cart));
+  }, [cart]);
+
+  const handleClearCart = () => {
+    setCart([]);
+    setSelectedSales(null);
+    setSelectedMember(null);
+    localStorage.removeItem("pos_cart");
+    localStorage.removeItem("pos_selected_sales");
+    localStorage.removeItem("pos_selected_member");
+  }
 
   // Fetching API
   // const fetchProducts = async (keyword: string) => {
