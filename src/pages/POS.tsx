@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from 'react';
-// Perhatikan kurung kurawal pada import products
 import { products } from "@/dummies/product"; 
 import type { TProduct } from "@/lib/model";
 import { Card } from "@/components/ui/card";
@@ -10,6 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Search, ShoppingCart, Plus, Minus, Trash2, Users, UserPlus, ChevronRight } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Popover } from '@/components/ui/popover';
+import { useRef } from 'react';
 
 export type TCartItem = TProduct & { quantity: number };
 
@@ -25,6 +25,51 @@ const salesData = [
 ];
 
 const POSPage: React.FC<POSProps> = ({ onCheckout }) => {
+  // For Cart's
+  const [cart, setCart] = useState<TCartItem[]>(() => 
+    { const savedCart = localStorage.getItem("pos_cart");
+      return savedCart ? JSON.parse(savedCart) : []; });
+  const [searchQuery, setSearchQuery] = useState("");
+  useEffect(() => {
+    localStorage.setItem("pos_cart", JSON.stringify(cart));
+  }, [cart]);
+
+  const handleClearCart = () => {
+    setCart([]);
+    setSelectedSales(null);
+    setSelectedMember(null);
+    localStorage.removeItem("pos_cart");
+    localStorage.removeItem("pos_selected_sales");
+    localStorage.removeItem("pos_selected_member");
+  }
+
+  
+  // Logic: Add to cart
+  const addToCart = (product: TProduct) => {
+    setCart((current) => {
+      const existing = current.find((item) => item.id === product.id);
+      if (existing) {
+        return current.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        );
+      }
+      return [...current, { ...product, quantity: 1 }];
+    });
+  };
+
+  // Logic: Reducing quantity
+  const removeFromCart = (id: number) => {
+    setCart((current) => {
+      const item = current.find((i) => i.id === id);
+      if (item?.quantity === 1) {
+        return current.filter((i) => i.id !== id);
+      }
+      return current.map((i) =>
+        i.id === id ? { ...i, quantity: i.quantity - 1 } : i
+      );
+    });
+  };
+
   // For Sales
   const [selectedSales, setSelectedSales] = useState<string | null>(() => {
     return localStorage.getItem("pos_selected_sales");
@@ -56,42 +101,48 @@ const POSPage: React.FC<POSProps> = ({ onCheckout }) => {
   // const [products, setProducts] = useState<TProduct[]>([]);
   // const [loading, setLoading] = useState(false);
 
-  // For Cart's
-  const [cart, setCart] = useState<TCartItem[]>(() => 
-    { const savedCart = localStorage.getItem("pos_cart");
-      return savedCart ? JSON.parse(savedCart) : []; });
-  const [searchQuery, setSearchQuery] = useState("");
-  useEffect(() => {
-    localStorage.setItem("pos_cart", JSON.stringify(cart));
-  }, [cart]);
+  // Product filter
+  const filteredProducts = products.filter((p) =>
+    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    p.sku.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
-  const handleClearCart = () => {
-    setCart([]);
-    setSelectedSales(null);
-    setSelectedMember(null);
-    localStorage.removeItem("pos_cart");
-    localStorage.removeItem("pos_selected_sales");
-    localStorage.removeItem("pos_selected_member");
-  }
-
-  // Fetching API
+  // Fetching API (WIP)
   // const fetchProducts = async (keyword: string) => {
   //   try {
   //     setLoading(true);
-  //     const url = `https://backend-dev.secacastore.com/api/kasir/catalogues/product_search?limit=16&filter_stock=false&keyword=${keyword}`
+      
+  //     // NEEDS TOKEN
+  //     const token = localStorage.getItem('access_token'); 
 
-  //     console.log("Memanggil URL:", url); // Cek di console apakah URL-nya sudah benar
-  //     const response = await fetch(url);
-  //     console.log("status response:", response.status);
+  //     const url = `https://backend-dev.secacastore.com/api/kasir/catalogues/product_search?limit=16&filter_stock=false&location=5&keyword=${keyword}`;
+
+  //     console.log("Memanggil URL:", url);
+      
+  //     const response = await fetch(url, {
+  //       method: 'GET',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //         'Accept': 'application/json',
+  //         ...(token && { 'Authorization': `Bearer ${token}` })
+  //       }
+  //     });
+
+  //     console.log("Status response:", response.status);
+
+  //     if (response.status === 401) {
+  //       console.error("Token tidak valid atau expired");
+  //       return;
+  //     }
 
   //     const result = await response.json();
-  //     console.log("data dari api:", result)
+  //     console.log("Data dari api:", result);
 
-  //     if (result.data) {
-  //     setProducts(result.data);
-  //   } else {
-  //     setProducts(result); // Jika ternyata tidak dibungkus .data
-  //   }
+  //     if (result && result.data) {
+  //       setProducts(result.data);
+  //     } else {
+  //       setProducts(Array.isArray(result) ? result : []); 
+  //     }
   //   } catch (error) {
   //     console.error("Gagal konek api", error);
   //   } finally {
@@ -100,45 +151,13 @@ const POSPage: React.FC<POSProps> = ({ onCheckout }) => {
   // };
 
   // useEffect(() => {
-  //   // Beri jeda sedikit (debounce) agar tidak request setiap huruf diketik
   //   const delayDebounceFn = setTimeout(() => {
+  //     // Hanya panggil API jika minimal 1 karakter atau saat awal load
   //     fetchProducts(searchQuery);
   //   }, 500);
 
   //   return () => clearTimeout(delayDebounceFn);
   // }, [searchQuery]);
-
-  // Logic: Add to cart
-  const addToCart = (product: TProduct) => {
-    setCart((current) => {
-      const existing = current.find((item) => item.id === product.id);
-      if (existing) {
-        return current.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
-        );
-      }
-      return [...current, { ...product, quantity: 1 }];
-    });
-  };
-
-  // Logic: Reducing quantity
-  const removeFromCart = (id: number) => {
-    setCart((current) => {
-      const item = current.find((i) => i.id === id);
-      if (item?.quantity === 1) {
-        return current.filter((i) => i.id !== id);
-      }
-      return current.map((i) =>
-        i.id === id ? { ...i, quantity: i.quantity - 1 } : i
-      );
-    });
-  };
-
-  // Product filter
-  const filteredProducts = products.filter((p) =>
-    p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    p.sku.toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   const totalPrice = useMemo(() => {
     return cart.reduce((acc, item) => acc + item.sell_price * item.quantity, 0);
