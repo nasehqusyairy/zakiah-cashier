@@ -101,6 +101,11 @@ const POSPage: React.FC<POSProps> = ({ onCheckout }) => {
   // const [products, setProducts] = useState<TProduct[]>([]);
   // const [loading, setLoading] = useState(false);
 
+  useEffect(() => {
+    const tempToken = "15369|fueGFfqOH4kd5KVBpbBjxzEKlDXuKpnW4jwtANQVd0519f54";
+    localStorage.setItem('acces_token', tempToken);
+  }, []);
+
   // Product filter
   const filteredProducts = products.filter((p) =>
     p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
