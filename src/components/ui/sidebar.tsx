@@ -2,20 +2,18 @@
 import React from 'react';
 import { LayoutDashboard, Receipt, BarChart3, Boxes } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const navItems = [
-  { id: 'pos', label: 'Kasir (POS)', icon: LayoutDashboard, path: '/' },
+  { id: 'pos', label: 'Kasir (POS)', icon: LayoutDashboard, path: '/pos' },
   { id: 'invoice', label: 'Riwayat Invoice', icon: Receipt, path: '/invoice' },
   { id: 'rekap', label: 'Rekap Penjualan', icon: BarChart3, path: '/rekap' },
   { id: 'stok', label: 'Stok Produk', icon: Boxes, path: '/stok' },
 ];
 
-interface SidebarProps {
-  activePage: string;
-  onPageChange: (id: string) => void;
-}
-
-const Sidebar = ({ activePage, onPageChange }: SidebarProps) => {
+const Sidebar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
   return (
     <aside className="w-64 bg-white border-r flex flex-col h-full shadow-sm">
       <div className="p-6">
@@ -27,7 +25,7 @@ const Sidebar = ({ activePage, onPageChange }: SidebarProps) => {
       <nav className="flex-1 px-4 space-y-1">
         {navItems.map((item) => {
             const Icon = item.icon;
-            const isActive = activePage === item.id;
+            const isActive = location.pathname === item.path;
   
   return (
     <Button
@@ -38,7 +36,7 @@ const Sidebar = ({ activePage, onPageChange }: SidebarProps) => {
           ? "shadow-md shadow-primary/20" 
           : "text-slate-500 hover:text-primary hover:bg-slate-50"
       }`}
-      onClick={() => onPageChange(item.id)}
+      onClick={() => navigate(item.path)}
     >
       <Icon size={18} className={isActive ? "text-white" : "text-slate-400"} />
       {item.label}

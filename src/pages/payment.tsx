@@ -1,16 +1,38 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from '@/components/ui/input';
 import { ArrowLeft, CreditCard, Banknote, QrCode } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import type { TCartItem } from './POS';
+import { useNavigate } from 'react-router-dom';
 
-const PaymentPage = ({ cart, onBack, onConfirm }: any) => {
-  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
-  const [isCashModalOpen, setIsCashModalOpen] = useState(false);
-  const [cashAmount, setCashAmount] = useState<number>(0);
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, "");
+const PaymentPage: React.FC = () => {
+   const navigate = useNavigate();
+   const [cart, setCart] = useState<TCartItem[]>([]);
+
+   useEffect(() => {
+      const savedCart = localStorage.getItem("pos_cart");
+      if (savedCart) {
+         setCart(JSON.parse(savedCart))
+      } else {
+         navigate('/pos');
+      }
+   }, [navigate]);
+
+   const handleConfirm = () => {
+      if (paymentMethod) {
+         console.log("Proses bayar dengan:", paymentMethod);
+         // LOGIC: SENDING TO API (WIP)
+         localStorage.removeItem("pos_cart");
+      }
+   };
+
+   const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+   const [isCashModalOpen, setIsCashModalOpen] = useState(false);
+   const [cashAmount, setCashAmount] = useState<number>(0);
+   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const value = e.target.value.replace(/\D/g, "");
     setCashAmount(Number(value));
   };
   const handleNumpadClick = (value: string | number) => {
@@ -35,7 +57,7 @@ const PaymentPage = ({ cart, onBack, onConfirm }: any) => {
    {/* === Orders Details === */}
    <div className="flex-[1.5] flex flex-col min-h-0 bg-white border rounded-2xl p-8 shadow-sm">
       <button 
-         onClick={onBack} 
+         onClick={() => navigate('/pos')} 
          className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors mb-6 text-sm font-bold"
          >
          <ArrowLeft size={16} />
@@ -197,7 +219,7 @@ const PaymentPage = ({ cart, onBack, onConfirm }: any) => {
          </div>
          <Button 
             disabled={!paymentMethod}
-            onClick={() => onConfirm(paymentMethod)}
+            onClick={handleConfirm}
          className="w-full h-16 mt-8 text-lg font-black uppercase tracking-tighter italic rounded-2xl shadow-xl shadow-primary/20"
          >
          Konfirmasi Pembayaran

@@ -6,14 +6,15 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
+import { useNavigate } from 'react-router-dom';
 import { Search, ShoppingCart, Plus, Minus, Trash2, Users, UserPlus, ChevronRight, Mail } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 
 export type TCartItem = TProduct & { quantity: number };
 
-interface POSProps {
-  onCheckout: (cart: TCartItem[]) => void;
-}
+// interface POSProps {
+//   onCheckout: (cart: TCartItem[]) => void;
+// }
 
 // ======== DUMMIES =========
 const salesData = [
@@ -22,8 +23,9 @@ const salesData = [
   { id: 3, name: "Syuaiba Sales" }
 ];
 
-const POSPage: React.FC<POSProps> = ({ onCheckout }) => {
+const POSPage: React.FC = () => {
   // For Cart's
+  const navigate = useNavigate();
   const [cart, setCart] = useState<TCartItem[]>(() => 
     { const savedCart = localStorage.getItem("pos_cart");
       return savedCart ? JSON.parse(savedCart) : []; });
@@ -31,6 +33,10 @@ const POSPage: React.FC<POSProps> = ({ onCheckout }) => {
   useEffect(() => {
     localStorage.setItem("pos_cart", JSON.stringify(cart));
   }, [cart]);
+  const handleCheckout = () => {
+   localStorage.setItem("pos_cart", JSON.stringify(cart));
+   navigate('/payment');
+  };
 
   const handleClearCart = () => {
     setCart([]);
@@ -444,7 +450,7 @@ const POSPage: React.FC<POSProps> = ({ onCheckout }) => {
          </div>
          <Button 
          className="w-full h-14 text-lg font-bold bg-primary hover:bg-primary/90 text-primary-foreground rounded-xl" 
-         disabled={cart.length === 0} onClick={() => onCheckout(cart)}>CHECKOUT</Button>
+         disabled={cart.length === 0} onClick={ handleCheckout }>CHECKOUT</Button>
       </div>
    </aside>
 </div>

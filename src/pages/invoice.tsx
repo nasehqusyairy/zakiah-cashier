@@ -3,15 +3,18 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Search, FileText, User, Receipt, Printer, Send } from "lucide-react";
+import { Search, FileText, User, Receipt, Printer, Send, RotateCcw } from "lucide-react";
 import { Calendar } from '@/components/ui/calendar';
 import type { TProduct } from "@/lib/model";
 import type { TInvoice } from '@/lib/model';
 import { invoices } from '@/dummies/invoice';
+import { useNavigate } from 'react-router-dom';
 
 const InvoicePage: React.FC = () => {
   const [selectedInvoice, setSelectedInvoice] = useState<TInvoice | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+
+  const navigate = useNavigate();
 
   // Logic: Invoice Filter
   const filteredInvoices = useMemo(() => {
@@ -25,7 +28,7 @@ const InvoicePage: React.FC = () => {
 
   return (
     <div className="flex gap-6 h-[calc(100vh-140px)]">
-   {/* ========= Daftar Invoice ========= */}
+   {/* ========= Invoice List ========= */}
    <div className="flex-[1.5] flex flex-col gap-4">
       <div className="flex flex-col gap-2">
          <h2 className="text-xl font-bold text-slate-800">Riwayat Penjualan</h2>
@@ -120,9 +123,10 @@ const InvoicePage: React.FC = () => {
             <Printer size={14} />
             Cetak
          </Button>
-         <Button variant="outline" className="flex-1 gap-2">
-            <Send size={14} />
-            Kirim WA
+         <Button variant="outline" className="flex-1 gap-2 border-orange-500 text-orange-600 hover:bg-orange-50"
+         onClick={() => navigate('/refund')}>
+            <RotateCcw size={14} />
+            Pengembalian
          </Button>
       </div>
       </>
