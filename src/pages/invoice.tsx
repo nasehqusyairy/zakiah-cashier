@@ -4,8 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Search, FileText, User, Receipt, Printer, Send, RotateCcw } from "lucide-react";
-import { Calendar } from '@/components/ui/calendar';
-import type { TProduct } from "@/lib/model";
 import type { TInvoice } from '@/lib/model';
 import { invoices } from '@/dummies/invoice';
 import { useNavigate } from 'react-router-dom';

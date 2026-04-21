@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from '@/components/ui/input';
-import { ArrowLeft, CreditCard, Banknote, QrCode } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ArrowLeft, CreditCard, QrCode } from "lucide-react";
 import type { TCartItem } from './POS';
 import { useNavigate } from 'react-router-dom';
+import CashPaymentModal from '@/components/ui/numpad-modal';
 
 const PaymentPage: React.FC = () => {
    const navigate = useNavigate();
@@ -29,23 +28,12 @@ const PaymentPage: React.FC = () => {
    };
 
    const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
-   const [isCashModalOpen, setIsCashModalOpen] = useState(false);
-   const [cashAmount, setCashAmount] = useState<number>(0);
-   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const value = e.target.value.replace(/\D/g, "");
-    setCashAmount(Number(value));
-  };
-  const handleNumpadClick = (value: string | number) => {
-    if (typeof value === 'number' || !isNaN(Number(value))) {
-      setCashAmount(prev => {
-        const combined = `${prev}${value}`;
-        return Number(combined);
-      });
-    };
-  };
-  const addQuickCash = (amount: number) => {
-    setCashAmount(prev => prev + amount);
-  };
+   const [finalCash, setFinalCash] = useState<number>(0);
+
+   const handleCashConfirm = (amount: number) => {
+      setPaymentMethod('TUNAI');
+      setFinalCash(amount);
+   }
 
   const subtotal = cart.reduce((acc: number, item: any) => acc + (item.sell_price * item.quantity), 0);
 
@@ -57,7 +45,8 @@ const PaymentPage: React.FC = () => {
    {/* === Orders Details === */}
    <div className="flex-[1.5] flex flex-col min-h-0 bg-white border rounded-2xl p-8 shadow-sm">
       <button 
-         onClick={() => navigate('/pos')} 
+         onClick={() =>
+         navigate('/pos')} 
          className="flex items-center gap-2 text-slate-400 hover:text-primary transition-colors mb-6 text-sm font-bold"
          >
          <ArrowLeft size={16} />
@@ -104,89 +93,16 @@ const PaymentPage: React.FC = () => {
             <section>
                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Metode Pembayaran</p>
                {/* Pay using Cash */}
-               <div className="space-y-3 mb-6">
-                  <label className="text-[10px] font-bold text-slate-500 uppercase">Tunai</label>
-                  <button 
-                     onClick={() =>
-                     {
-                     setPaymentMethod('TUNAI');
-                     setIsCashModalOpen(true);
-                     setCashAmount(0);
-                     }}
-                     className={`w-full p-4 rounded-xl border-2 flex items-center gap-3 transition-all ${
-                     paymentMethod === 'TUNAI' ? 'border-primary bg-primary/5 text-primary shadow-lg shadow-primary/10' : 'border-slate-100 text-slate-400 hover:border-slate-200'
-                     }`}
-                     >
-                     <Banknote size={18} />
-                     <span className="font-black text-xs uppercase italic tracking-widest">TUNAI</span>
-                  </button>
-                  {/* Numpad */}
-                  <Dialog open={isCashModalOpen} onOpenChange={setIsCashModalOpen}>
-                     <DialogContent className="sm:max-w-[450px] p-6">
-                        <DialogHeader>
-                           <DialogTitle className="text-2xl font-black italic tracking-tighter">Metode Tunai</DialogTitle>
-                           <p className="text-sm text-slate-500">Masukkan nominal sesuai uang yang diberikan oleh member</p>
-                        </DialogHeader>
-                        <div className="space-y-6 mt-4">
-                           {/* Display Nominal */}
-                           <div className="relative group">
-                              <Input 
-                              type="text" 
-                              inputMode="numeric" 
-                              className="h-20 text-right text-4xl font-black text-primary pr-16 border-2 border-slate-900 focus-visible:ring-primary focus-visible:ring-2 transition-all shadow-[4px_4px_0px_0px_rgba(15,23,42,1)]"
-                              value={cashAmount === 0 ? "" : cashAmount.toLocaleString('id-ID')}
-                              onChange={handleInputChange}
-                              placeholder="0"
-                              autoFocus 
-                              />
-                              <div className="absolute right-4 top-1/2 -translate-y-1/2 flex flex-col items-end">
-                                 <span className="bg-primary text-white px-2 py-0.5 rounded font-black text-[10px] tracking-tighter">
-                                 IDR
-                                 </span>
-                              </div>
-                           </div>
-                           {/* Numpad Grid */}
-                           <div className="grid grid-cols-4 gap-2">
-                              {/* Tombol Angka 1-9 */}
-                              {[1, 2, 3].map(n => <Button key={n} variant="secondary" className="h-12 font-bold text-lg" onClick={() => handleNumpadClick(n)}>{n}</Button>)}
-                              <Button variant="secondary" className="h-12 font-bold bg-slate-100 text-slate-700" onClick={() => addQuickCash(10000)}>10.000</Button>
-                              {[4, 5, 6].map(n => <Button key={n} variant="secondary" className="h-12 font-bold text-lg" onClick={() => handleNumpadClick(n)}>{n}</Button>)}
-                              <Button variant="secondary" className="h-12 font-bold bg-slate-100 text-slate-700" onClick={() => addQuickCash(20000)}>20.000</Button>
-                              {[7, 8, 9].map(n => <Button key={n} variant="secondary" className="h-12 font-bold text-lg" onClick={() => handleNumpadClick(n)}>{n}</Button>)}
-                              <Button variant="secondary" className="h-12 font-bold bg-slate-100 text-slate-700" onClick={() => addQuickCash(50000)}>50.000</Button>
-                              <Button variant="secondary" className="h-12 font-bold text-lg" onClick={() => handleNumpadClick(0)}>0</Button>
-                              <Button variant="secondary" className="h-12 font-bold text-lg" onClick={() => handleNumpadClick('00')}>00</Button>
-                              <Button variant="secondary" className="h-12 font-bold text-lg" onClick={() => handleNumpadClick('000')}>000</Button>
-                              <Button variant="secondary" className="h-12 font-bold bg-slate-100 text-slate-700" onClick={() => addQuickCash(100000)}>100.000</Button>
-                           </div>
-                           <div className="flex gap-2 pt-4">
-                              <Button 
-                                 variant="secondary" 
-                                 className="flex-1 h-14 font-black uppercase italic italic tracking-tighter"
-                                 onClick={() => setCashAmount(subtotal)} 
-                              >
-                              Uang Pas
-                              </Button>
-                              <Button 
-                                 variant="secondary" 
-                                 className="flex-1 h-14 font-black uppercase italic italic tracking-tighter"
-                                 onClick={() => setIsCashModalOpen(false)}
-                              >
-                              Kembali
-                              </Button>
-                              <Button 
-                                 className="flex-[1.5] h-14 bg-primary font-black uppercase italic italic tracking-tighter text-lg"
-                                 onClick={() => {
-                              setIsCashModalOpen(false);
-                              }}
-                              >
-                              Konfirm
-                              </Button>
-                           </div>
-                        </div>
-                     </DialogContent>
-                  </Dialog>
+               <CashPaymentModal subtotal={subtotal} isActive={paymentMethod === 'TUNAI'} onConfirm={handleCashConfirm} />
+               {/* Tampilkan kembalian jika pembayaran tunai sudah diisi */}
+               {paymentMethod === 'TUNAI' && finalCash > subtotal && (
+               <div className="p-4 bg-green-50 border border-green-200 rounded-xl mb-6">
+                  <p className="text-xs text-green-600 font-bold uppercase">Kembalian</p>
+                  <p className="text-2xl font-black text-green-700">
+                     {(finalCash - subtotal).toLocaleString('id-ID')}
+                  </p>
                </div>
+               )}
                {/* Payment using Debit */}
                <div className="space-y-3">
                   <label className="text-[10px] font-bold text-slate-500 uppercase">Debit / QRIS</label>
@@ -220,8 +136,8 @@ const PaymentPage: React.FC = () => {
          <Button 
             disabled={!paymentMethod}
             onClick={handleConfirm}
-         className="w-full h-16 mt-8 text-lg font-black uppercase tracking-tighter italic rounded-2xl shadow-xl shadow-primary/20"
-         >
+            className="w-full h-16 mt-8 text-lg font-black uppercase tracking-tighter italic rounded-2xl shadow-xl shadow-primary/20"
+            >
          Konfirmasi Pembayaran
          </Button>
       </Card>

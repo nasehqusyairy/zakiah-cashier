@@ -7,21 +7,11 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, Plus, Minus, Trash2, Users, UserPlus, ChevronRight, Mail } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Search, ShoppingCart, Plus, Minus, Trash2 } from "lucide-react";
+import SalesModal from '@/components/ui/sales-modal';
+import MemberModal from '@/components/ui/member-modal';
 
 export type TCartItem = TProduct & { quantity: number };
-
-// interface POSProps {
-//   onCheckout: (cart: TCartItem[]) => void;
-// }
-
-// ======== DUMMIES =========
-const salesData = [
-  { id: 1, name: "Balqis Sales" },
-  { id: 2, name: "Sabilatul Sales" },
-  { id: 3, name: "Syuaiba Sales" }
-];
 
 const POSPage: React.FC = () => {
   // For Cart's
@@ -77,9 +67,7 @@ const POSPage: React.FC = () => {
   const [selectedSales, setSelectedSales] = useState<string | null>(() => {
     return localStorage.getItem("pos_selected_sales");
   });
-  const [isSalesModalOpen, setIsSalesModalOpen] = useState(false);
-  const [salesSearch, setSalesSearch] = useState("");
-  const filteredSales = salesData.filter(s => s.name.toLowerCase().includes(salesSearch.toLowerCase()));
+
   useEffect(() => {
     if (selectedSales) {
       localStorage.setItem("pos_selected_sales", selectedSales);
@@ -92,15 +80,7 @@ const POSPage: React.FC = () => {
   const [selectedMember, setSelectedMember] = useState<string | null>(() => {
     return localStorage.getItem("pos_selected_member");
   });
-  const [isMemberModalOpen, setIsMemberModalOpen] = useState(false);
-  const [memberSearch, setMemberSearch] = useState("");
-  const [memberModalView, setMemberModalView] = useState<'search' | 'add'>('search');
-  const [newMemberForm, setNewMemberForm] = useState({
-    firstName: '',
-    lastName: '',
-    phone: '',
-    email: ''
-  });
+  
   useEffect(() => {
     if (selectedMember) {
       localStorage.setItem("pos_selected_member", selectedMember);
@@ -108,12 +88,6 @@ const POSPage: React.FC = () => {
       localStorage.removeItem("pos_selected_member");
     }
   }, [selectedMember]);
-
-  const openMemberModal = () => {
-    setMemberModalView('search');
-    setMemberSearch("");
-    setIsMemberModalOpen(true);
-  }
 
   // For API's
   // const [products, setProducts] = useState<TProduct[]>([]);
@@ -130,7 +104,7 @@ const POSPage: React.FC = () => {
   //   try {
   //     setLoading(true);
       
-  //     // NEEDS TOKEN
+  //     // ALREADY HAVE TOKEN BUT ERROR 422 (auth.invalid_employee)
   //     const token = localStorage.getItem('access_token'); 
 
   //     const url = `https://backend-dev.secacastore.com/api/kasir/catalogues/product_search?limit=16&filter_stock=false&location=5&keyword=${keyword}`;
@@ -156,10 +130,10 @@ const POSPage: React.FC = () => {
   //     const result = await response.json();
   //     console.log("Data dari api:", result);
 
-  //     if (result && result.data) {
+  //     if (response.ok && result.data) {
   //       setProducts(result.data);
   //     } else {
-  //       setProducts(Array.isArray(result) ? result : []); 
+  //       setProducts([]); 
   //     }
   //   } catch (error) {
   //     console.error("Gagal konek api", error);
@@ -237,154 +211,9 @@ const POSPage: React.FC = () => {
    <aside className="flex-1 bg-white border rounded-2xl shadow-xl flex flex-col min-w-[360px] overflow-hidden">
       <div className="p-4 grid grid-cols-2 gap-2 border-b bg-slate-50/50">
          {/* Modal for member's button */}
-         <Button 
-            variant="outline" 
-            className="bg-white border-primary text-primary hover:bg-primary/5 font-bold text-xs h-10 gap-2"
-            onClick= { openMemberModal }>
-            <UserPlus size={16} />
-            {selectedMember || "Member"}
-         </Button>
-         <Dialog open={isMemberModalOpen} onOpenChange={setIsMemberModalOpen}>
-            <DialogContent className="sm:max-w-[500px] p-0 overflow-hidden border-none shadow-2xl">
-               <DialogHeader className="p-6 pb-0">
-                  <DialogTitle className="font-black text-3xl text-slate-900 leading-none">
-                     Member
-                  </DialogTitle>
-                  <p className="text-sm text-slate-500 mt-2">
-                     Masukkan member yang sedang melakukan pembelian.
-                  </p>
-               </DialogHeader>
-               <div className="p-6">
-                  {memberModalView === 'search' && (
-                  <div className="space-y-6">
-                     <div className="flex gap-2">
-                        <div className="relative flex-1">
-                           <Search className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
-                           <Input 
-                              placeholder="cari pelanggan ..." 
-                              className="pl-10 h-12 border-slate-300 focus:border-primary focus:ring-primary"
-                              value={memberSearch}
-                              onChange={(e) => setMemberSearch(e.target.value)}
-                           />
-                        </div>
-                        <Button className="h-12 px-6 bg-primary font-bold">Cari</Button>
-                     </div>
-                     <div className="text-center py-10 border border-dashed border-slate-200 rounded-2xl bg-slate-50">
-                        <p className="text-slate-600 font-medium">
-                           Silahkan cari atau menambahkan member baru
-                        </p>
-                     </div>
-                     <div className="flex justify-center gap-3 pt-4 border-t border-slate-100">
-                        <Button 
-                           variant="outline" 
-                           className="border-primary text-primary hover:bg-primary/5 font-bold h-11 px-6"
-                           onClick={() => setMemberModalView('add')}
-                        >
-                        Tambah member
-                        </Button>
-                        <Button 
-                           variant="secondary" 
-                           className="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold h-11 px-6"
-                           onClick={() => setIsMemberModalOpen(false)}
-                        >
-                        Kembali
-                        </Button>
-                     </div>
-                  </div>
-                  )}
-                  {memberModalView === 'add' && (
-                  <div className="space-y-5">
-                     <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-1.5">
-                           <label className="text-sm font-bold text-slate-800">Nama depan</label>
-                           <Input placeholder="Masukkan nama depan" className="h-11" />
-                        </div>
-                        <div className="space-y-1.5">
-                           <label className="text-sm font-bold text-slate-800">Nama belakang</label>
-                           <Input placeholder="Masukkan nama belakang" className="h-11" />
-                        </div>
-                     </div>
-                     <div className="space-y-1.5">
-                        <label className="text-sm font-bold text-slate-800">Nomor handphone</label>
-                        <div className="flex gap-2">
-                           <div className="w-20 h-11 bg-slate-100 rounded-md border flex items-center justify-center font-mono text-slate-500 text-sm">
-                              62
-                           </div>
-                           <Input placeholder="Masukkan nomor handphone" className="flex-1 h-11" type="tel" />
-                        </div>
-                     </div>
-                     <div className="space-y-1.5">
-                        <label className="text-sm font-bold text-slate-800">Email</label>
-                        <div className="relative">
-                           <Mail className="absolute left-3 top-3.5 h-4 w-4 text-slate-400" />
-                           <Input placeholder="Masukkan email" className="pl-10 h-11" type="email" />
-                        </div>
-                     </div>
-                     <div className="flex gap-3 pt-6 border-t border-slate-100">
-                        <Button 
-                           className="bg-primary font-bold h-12 px-8"
-                           onClick={() => {
-                        setSelectedMember(""); 
-                        setIsMemberModalOpen(false);
-                        }}
-                        >
-                        Simpan member
-                        </Button>
-                        <Button 
-                           variant="secondary" 
-                           className="bg-slate-100 text-slate-700 hover:bg-slate-200 font-bold h-12 px-8"
-                           onClick={() => setMemberModalView('search')} 
-                        >
-                        Kembali
-                        </Button>
-                     </div>
-                  </div>
-                  )}
-               </div>
-            </DialogContent>
-         </Dialog>
+         <MemberModal selectedMember={selectedMember} onSelect={(name) => setSelectedMember(name)} />
          {/* Modal for sales's button */}
-         <Dialog open={isSalesModalOpen} onOpenChange={setIsSalesModalOpen}>
-            <DialogTrigger asChild>
-               <Button 
-                  variant="outline" 
-                  className="bg-white border-primary text-primary hover:bg-primary/5 font-bold text-xs h-10 gap-2"
-                  >
-                  <Users size={16} />
-                  {selectedSales || "Sales"}
-               </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[425px]">
-               <DialogHeader>
-                  <DialogTitle className="font-black italic uppercase tracking-tighter">Pilih Sales</DialogTitle>
-               </DialogHeader>
-               <div className="relative my-4">
-                  <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                  <Input 
-                     placeholder="Cari nama sales..." 
-                     className="pl-10"
-                     value={salesSearch}
-                     onChange={(e) => setSalesSearch(e.target.value)}
-                  />
-               </div>
-               <div className="max-h-[300px] overflow-y-auto space-y-1">
-                  {filteredSales.map((sales) => (
-                  <button
-                     key={sales.id}
-                     onClick={() =>
-                     {
-                     setSelectedSales(sales.name);
-                     setIsSalesModalOpen(false);
-                     }}
-                     className="w-full text-left p-3 rounded-lg hover:bg-slate-100 font-bold text-slate-700 transition-colors flex justify-between items-center group"
-                     >
-                     {sales.name}
-                     <ChevronRight size={14} className="opacity-0 group-hover:opacity-100 text-primary" />
-                  </button>
-                  ))}
-               </div>
-            </DialogContent>
-         </Dialog>
+         <SalesModal selectedSales={selectedSales} onSelect={(name) => setSelectedSales(name)} />
       </div>
       <div className="p-5 border-b bg-slate-50 flex justify-between items-center shrink-0">
          <div className="flex items-center gap-2">
