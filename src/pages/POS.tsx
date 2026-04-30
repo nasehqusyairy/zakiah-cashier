@@ -90,8 +90,8 @@ const POSPage: React.FC = () => {
   }, [selectedMember]);
 
   // For API's
-  // const [products, setProducts] = useState<TProduct[]>([]);
-  // const [loading, setLoading] = useState(false);
+  const [products, setProducts] = useState<TProduct[]>([]);
+  const [loading, setLoading] = useState(false);
 
   // Product filter
   const filteredProducts = products.filter((p) =>
@@ -99,57 +99,54 @@ const POSPage: React.FC = () => {
     p.sku.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Fetching API (WIP)
-  // const fetchProducts = async (keyword: string) => {
-  //   try {
-  //     setLoading(true);
+  // Fetching API 
+  const fetchProducts = async (keyword: string) => {
+    try {
+      setLoading(true);  
       
-  //     // ALREADY HAVE TOKEN BUT ERROR 422 (auth.invalid_employee)
-  //     const token = localStorage.getItem('access_token'); 
+      const token = localStorage.getItem('access_token');
 
-  //     const url = `https://backend-dev.secacastore.com/api/kasir/catalogues/product_search?limit=16&filter_stock=false&location=5&keyword=${keyword}`;
-
-  //     console.log("Memanggil URL:", url);
+      const url = new URL("https://backend-dev.secacastore.com/api/kasir/catalogues/product_search?limit=16&filter_stock=true&location=5&keyword=");
       
-  //     const response = await fetch(url, {
-  //       method: 'GET',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //         'Accept': 'application/json',
-  //         ...(token && { 'Authorization': `Bearer ${token}` })
-  //       }
-  //     });
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'x-employee-code': 'admin-zakiah',
+          'x-device-code': '8ee32711-54e4-4e45-b189-53e8b77a10db'
+        }
+      });
 
-  //     console.log("Status response:", response.status);
+      console.log("Status response:", response.status);
 
-  //     if (response.status === 401) {
-  //       console.error("Token tidak valid atau expired");
-  //       return;
-  //     }
+      if (response.status === 401) {
+        console.error("Token expired");
+        return;
+      }
 
-  //     const result = await response.json();
-  //     console.log("Data dari api:", result);
+      const result = await response.json();
+      console.log("Data :", result);
 
-  //     if (response.ok && result.data) {
-  //       setProducts(result.data);
-  //     } else {
-  //       setProducts([]); 
-  //     }
-  //   } catch (error) {
-  //     console.error("Gagal konek api", error);
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+      if (response.ok) {
+        const actualData = result.data?.data || result.data || [];
+        console.log("Extracted Product Array:", actualData);
+        setProducts(actualData);
+      }
+    } catch (error) {
+      console.error("API Connection Failed", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // useEffect(() => {
-  //   const delayDebounceFn = setTimeout(() => {
-  //     // Hanya panggil API jika minimal 1 karakter atau saat awal load
-  //     fetchProducts(searchQuery);
-  //   }, 500);
+  useEffect(() => {
+    const delayDebounceFn = setTimeout(() => {
+      fetchProducts(searchQuery);
+    }, 500);
 
-  //   return () => clearTimeout(delayDebounceFn);
-  // }, [searchQuery]);
+    return () => clearTimeout(delayDebounceFn);
+  }, [searchQuery]);
 
   // Total Price & Format
   const totalPrice = useMemo(() => {
@@ -161,35 +158,45 @@ const POSPage: React.FC = () => {
 
   return (
 <div className="flex gap-6 h-[calc(100vh-140px)] overflow-hidden">
-   {/*======== Products grid Area =========*/}
-   <div className="flex-[2.5] flex flex-col min-h-0 gap-4">
-      <div className="relative shrink-0">
-         <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
-         <Input 
-            placeholder="Cari produk atau scan barcode..." 
-            className="pl-10 h-11"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-         />
-      </div>
-      <div className="flex-1 min-h-0">
-         <ScrollArea className="h-full pr-4">
+{/*======== Products grid Area =========*/}
+<div className="flex-[2.5] flex flex-col min-h-0 gap-4">
+   <div className="relative shrink-0">
+      <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
+      <Input 
+         placeholder="Cari produk atau scan barcode..." 
+         className="pl-10 h-11"
+         value={searchQuery}
+         onChange={(e) => setSearchQuery(e.target.value)}
+      />
+   </div>
+   <div className="flex-1 min-h-0">
+      <ScrollArea className="h-full pr-4">\
+         {loading ? (
+         <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
+            {[...Array(8)].map((_, i) => (
+            <div key={i} className="h-32 bg-slate-100 animate-pulse rounded-xl" />
+               ))}
+            </div>
+            ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3 pb-10">
-               {filteredProducts.map((product) => (
+               {products.length > 0 ? (
+               products.map((product) => (
                <Card 
                   key={product.id}
                   onClick={() =>
                   addToCart(product)}
                   className="cursor-pointer hover:border-primary transition-all flex flex-col group shadow-sm overflow-hidden border-slate-200"
                   >
+                  {/* SKU & Stok */}
                   <div className="p-3 border-b bg-slate-50/50 flex justify-between items-start gap-2">
                      <span className="text-[10px] font-mono text-slate-400 uppercase tracking-tighter truncate">
-                     {product.sku}
+                     {product.sku || product.code || "NO-SKU"}
                      </span>
                      <div className="bg-white px-2 py-0.5 rounded text-[10px] font-bold border shadow-sm shrink-0">
-                        STOK: {product.product_location_stock.stock}
+                        STOK: {product.product_location_stock?.stock ?? 0}
                      </div>
                   </div>
+                  {/* Nama & Harga */}
                   <div className="p-3 flex flex-col justify-between flex-1 bg-white group-hover:bg-slate-50/30 transition-colors">
                      <h4 className="font-bold text-sm line-clamp-2 min-h-[40px] text-slate-700 leading-snug">
                         {product.name}
@@ -202,18 +209,26 @@ const POSPage: React.FC = () => {
                      </div>
                   </div>
                </Card>
-               ))}
+               ))
+               ) : (
+               <div className="col-span-full py-20 text-center">
+                  <p className="text-slate-400 italic text-sm">Produk tidak ditemukan...</p>
+               </div>
+               )}
             </div>
-         </ScrollArea>
+            )}
+      </ScrollArea>
       </div>
    </div>
    {/* ========= Cart Area ========= */}
    <aside className="flex-1 bg-white border rounded-2xl shadow-xl flex flex-col min-w-[360px] overflow-hidden">
       <div className="p-4 grid grid-cols-2 gap-2 border-b bg-slate-50/50">
          {/* Modal for member's button */}
-         <MemberModal selectedMember={selectedMember} onSelect={(name) => setSelectedMember(name)} />
+         <MemberModal selectedMember={selectedMember} onSelect={(name) =>
+         setSelectedMember(name)} />
          {/* Modal for sales's button */}
-         <SalesModal selectedSales={selectedSales} onSelect={(name) => setSelectedSales(name)} />
+         <SalesModal selectedSales={selectedSales} onSelect={(name) =>
+         setSelectedSales(name)} />
       </div>
       <div className="p-5 border-b bg-slate-50 flex justify-between items-center shrink-0">
          <div className="flex items-center gap-2">
