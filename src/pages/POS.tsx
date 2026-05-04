@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 import { useNavigate } from 'react-router-dom';
-import { Search, ShoppingCart, Plus, Minus, Trash2 } from "lucide-react";
+import { Search, ShoppingCart, Plus, Minus, Trash2, ChevronLeft, ChevronRight } from "lucide-react";
 import SalesModal from '@/components/ui/sales-modal';
 import MemberModal from '@/components/ui/member-modal';
 
@@ -64,13 +64,26 @@ const POSPage: React.FC = () => {
   };
 
   // For Sales
-  const [selectedSales, setSelectedSales] = useState<string | null>(() => {
-    return localStorage.getItem("pos_selected_sales");
+  interface SalesData {
+    id: number;
+    name: string;
+  }
+
+  const [selectedSales, setSelectedSales] = useState<SalesData | null>(() => {
+    const saved = localStorage.getItem("pos_selected_sales");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        return null;
+      }
+    }
+    return null;
   });
 
   useEffect(() => {
     if (selectedSales) {
-      localStorage.setItem("pos_selected_sales", selectedSales);
+      localStorage.setItem("pos_selected_sales", JSON.stringify(selectedSales));
     } else {
       localStorage.removeItem("pos_selected_sales");
     }
@@ -100,14 +113,20 @@ const POSPage: React.FC = () => {
   );
 
   // Fetching API 
-  const fetchProducts = async (keyword: string) => {
-    try {
-      setLoading(true);  
-      
+  const fetchProducts = async (keyword: string, cursorToken: string | null = null) => {
+    try {  
+      setLoading(true);
       const token = localStorage.getItem('access_token');
 
-      const url = new URL("https://backend-dev.secacastore.com/api/kasir/catalogues/product_search?limit=16&filter_stock=true&location=5&keyword=");
-      
+      const baseUrl = "https://backend-dev.secacastore.com/api/kasir/catalogues/product_search?limit=16&filter_stock=true&location=5";
+      const url = new URL(baseUrl);
+
+      url.searchParams.set("keyword", keyword);
+
+      if (cursorToken) {
+        url.searchParams.set("cursor", cursorToken)
+      }
+
       const response = await fetch(url.toString(), {
         method: 'GET',
         headers: {
@@ -129,9 +148,11 @@ const POSPage: React.FC = () => {
       console.log("Data :", result);
 
       if (response.ok) {
-        const actualData = result.data?.data || result.data || [];
+        const actualData = Array.isArray(result.data) ? result.data : result.data.data;
         console.log("Extracted Product Array:", actualData);
-        setProducts(actualData);
+        setProducts(actualData || []);
+        setNextCursor(result.data.links?.next || result.data.next_page_url);
+        setPrevCursor(result.data.prev_page_url || null);
       }
     } catch (error) {
       console.error("API Connection Failed", error);
@@ -142,9 +163,8 @@ const POSPage: React.FC = () => {
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(() => {
-      fetchProducts(searchQuery);
+      fetchProducts(searchQuery, null);
     }, 500);
-
     return () => clearTimeout(delayDebounceFn);
   }, [searchQuery]);
 
@@ -156,10 +176,14 @@ const POSPage: React.FC = () => {
   const formatIDR = (price: number) => 
     new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(price);
 
+  // Next & Previous
+  const [nextCursor, setNextCursor] = useState<string | null>(null);
+  const [prevCursor, setPrevCursor] = useState<string | null>(null);
+  
   return (
 <div className="flex gap-6 h-[calc(100vh-140px)] overflow-hidden">
 {/*======== Products grid Area =========*/}
-<div className="flex-[2.5] flex flex-col min-h-0 gap-4">
+<div className="flex-[2.5] flex flex-col h-full min-h-0 gap-4">
    <div className="relative shrink-0">
       <Search className="absolute left-3 top-3 h-4 w-4 text-slate-400" />
       <Input 
@@ -167,10 +191,15 @@ const POSPage: React.FC = () => {
          className="pl-10 h-11"
          value={searchQuery}
          onChange={(e) => setSearchQuery(e.target.value)}
+      onKeyDown={(e) => {
+      if (e.key === 'Enter') {
+      fetchProducts(searchQuery, null);
+      }
+      }}
       />
    </div>
    <div className="flex-1 min-h-0">
-      <ScrollArea className="h-full pr-4">\
+      <ScrollArea className="h-full pr-4">
          {loading ? (
          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
             {[...Array(8)].map((_, i) => (
@@ -219,6 +248,36 @@ const POSPage: React.FC = () => {
             )}
       </ScrollArea>
       </div>
+      {/* Controls Pagination */}
+    <div className="py-3 border-t bg-white flex items-center justify-between mt-auto">
+      <div className="flex gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 px-3"
+          disabled={!prevCursor || loading}
+          onClick={() => {
+            fetchProducts(searchQuery, prevCursor);
+          }}
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Prev
+        </Button>
+
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 px-3"
+          disabled={!nextCursor || loading}
+          onClick={() => {
+            fetchProducts(searchQuery, nextCursor);
+          }}
+        >
+          Next
+          <ChevronRight className="h-4 w-4 ml-1" />
+        </Button>
+      </div>
+    </div>
    </div>
    {/* ========= Cart Area ========= */}
    <aside className="flex-1 bg-white border rounded-2xl shadow-xl flex flex-col min-w-[360px] overflow-hidden">
@@ -227,8 +286,10 @@ const POSPage: React.FC = () => {
          <MemberModal selectedMember={selectedMember} onSelect={(name) =>
          setSelectedMember(name)} />
          {/* Modal for sales's button */}
-         <SalesModal selectedSales={selectedSales} onSelect={(name) =>
-         setSelectedSales(name)} />
+         <SalesModal selectedSales={selectedSales?.name || null} onSelect={(name, id) => {
+         setSelectedSales({ id, name });
+         }}
+         />
       </div>
       <div className="p-5 border-b bg-slate-50 flex justify-between items-center shrink-0">
          <div className="flex items-center gap-2">
