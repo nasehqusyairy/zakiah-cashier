@@ -148,11 +148,26 @@ const POSPage: React.FC = () => {
       console.log("Data :", result);
 
       if (response.ok) {
-        const actualData = Array.isArray(result.data) ? result.data : result.data.data;
+        const actualData = Array.isArray(result.data) ? result.data: result.data.data || [];
         console.log("Extracted Product Array:", actualData);
-        setProducts(actualData || []);
-        setNextCursor(result.data.links?.next || result.data.next_page_url);
-        setPrevCursor(result.data.prev_page_url || null);
+        setProducts(actualData);
+        const getCursorValue = (urlStr: string | null | undefined) => {
+          if (!urlStr) return null;
+          try {
+            const urlObj = new URL(urlStr);
+            return urlObj.searchParams.get("cursor");
+          } catch (e) {
+            return urlStr;
+          }
+        };
+        const nextLink = result.next_cursor || result.next_page_url || result.data?.next_page_url || result.data?.links?.next;
+        const prevLink = result.prev_cursor || result.prev_page_url || result.data?.prev_page_url || result.data?.links?.prev;
+
+        setNextCursor(getCursorValue(nextLink));
+        setPrevCursor(getCursorValue(prevLink));
+
+        console.log("Next Cursor Token:", getCursorValue(nextLink));
+        console.log("Prev Cursor Token:", getCursorValue(prevLink));
       }
     } catch (error) {
       console.error("API Connection Failed", error);
